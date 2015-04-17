@@ -137,4 +137,14 @@ public class Character {
     public void setKraca(boolean kraca) {
         this.kraca = kraca;
     }
+    
+    public boolean isNear(Character me, Character who, float distance){
+        Vector3f follower = me.getNode().getLocalTranslation();
+        Vector3f following = who.getNode().getLocalTranslation();
+        if(Math.abs(follower.getX() - following.getX())< distance &&
+              Math.abs(follower.getY() - following.getY())< distance &&
+                Math.abs(follower.getZ() - following.getZ())< distance)
+            return true;
+        return false;
+    }
 }
