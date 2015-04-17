@@ -128,6 +128,7 @@ public class Game extends SimpleApplication implements ActionListener {
 //        initWaterfall();
         
         initHasenie();
+        initFire();
         
         
     
@@ -156,7 +157,7 @@ public class Game extends SimpleApplication implements ActionListener {
         else
             nasleduj(janko);
         walking(crow, 1);
-        System.out.println("Janko: " +janko.getAnimacia().getAnimationName());
+        somVOhni(player);   
 //        System.out.println("X: " + player.getNode().getLocalTranslation().getX());
 //        System.out.println("Z: " + player.getNode().getLocalTranslation().getZ());
           
@@ -841,6 +842,11 @@ public class Game extends SimpleApplication implements ActionListener {
         }
     }
     
+    /**
+     * 
+     * @param rozmedzieA určuje X-ovú súradnicu vzdialenosti v kladnom aj zápornom smere
+     * @param rozmedzieB určuje Z-ovú súradnicu vzdialenosti v kladnom aj zápornom smere
+     */
     public void vzdialenostOhna(int rozmedzieA, int rozmedzieB)
     {
         float playerX = player.getNode().getLocalTranslation().getX();
@@ -850,68 +856,51 @@ public class Game extends SimpleApplication implements ActionListener {
         for(int i = 0; i < fireList.size(); i++)
         {
             fire = (Fire) fireList.get(i);
-            float x = fire.getX();
-            float z = fire.getZ();
+            float fireX = fire.getX();
+            float fireZ = fire.getZ();
             
-            if(x > playerX && z > playerZ)
+            if(fireX > playerX && fireZ > playerZ)
             {
-                if( (playerX < x && x < (playerX - rozmedzieA)) && (playerZ < z && z < (playerZ - rozmedzieB)))
+                if( (playerX < fireX && fireX < (playerX - rozmedzieA)) && (playerZ < fireZ && fireZ < (playerZ - rozmedzieB)))
                 {
                     float a = fire.fireNode().getLocalTranslation().getX();
                     float b = fire.fireNode().getLocalTranslation().getY() - 1;
                     float c = fire.fireNode().getLocalTranslation().getZ();
                     fire.fireNode().setLocalTranslation(a, b, c);
                     zrusenieOhna(fire);
-                    
-//                    float startSize = fire.fireNode().getStartSize();
-//                    float endSize = fire.fireNode().getEndSize();
-//                    fire.fireNode().setStartSize(startSize - 0.05f);
-//                    fire.fireNode().setEndSize(endSize - 0.02f);
-                    System.out.println("Vykonavam if(rusenie ohna)");
                 }
             }
-            else if(x > playerX && z < playerZ)
+            else if(fireX > playerX && fireZ < playerZ)
             {
-                if( (playerX < x && x < (playerX - rozmedzieA)) && (playerZ > z && z > (playerZ - rozmedzieB)))
+                if( (playerX < fireX && fireX < (playerX - rozmedzieA)) && (playerZ > fireZ && fireZ > (playerZ - rozmedzieB)))
                 {
                     float a = fire.fireNode().getLocalTranslation().getX();
                     float b = fire.fireNode().getLocalTranslation().getY() - 1;
                     float c = fire.fireNode().getLocalTranslation().getZ();
                     fire.fireNode().setLocalTranslation(a, b, c);
                     zrusenieOhna(fire);
-//                    float startSize = fire.fireNode().getStartSize();
-//                    float endSize = fire.fireNode().getEndSize();
-//                    fire.fireNode().setStartSize(startSize - 0.05f);
-//                    fire.fireNode().setEndSize(endSize - 0.02f);
-                    System.out.println("Vykonavam if(rusenie ohna)");
                 }
             }
-            else if(x < playerX && z > playerZ)
+            else if(fireX < playerX && fireZ > playerZ)
             {
-                if( (playerX > x && x > (playerX - rozmedzieA)) && (playerZ < z && z < (playerZ - rozmedzieB)))
+                if( (playerX > fireX && fireX > (playerX - rozmedzieA)) && (playerZ < fireZ && fireZ < (playerZ - rozmedzieB)))
                 {
                     float a = fire.fireNode().getLocalTranslation().getX();
                     float b = fire.fireNode().getLocalTranslation().getY() - 1;
                     float c = fire.fireNode().getLocalTranslation().getZ();
                     fire.fireNode().setLocalTranslation(a, b, c);
                     zrusenieOhna(fire);
-//                    float startSize = fire.fireNode().getStartSize();
-//                    float endSize = fire.fireNode().getEndSize();
-//                    fire.fireNode().setStartSize(startSize  - 0.05f);
-//                    fire.fireNode().setEndSize(endSize - 0.02f);
-                    System.out.println("Vykonavam if(rusenie ohna)");
                 }
             }
-            else if(x < playerX && z < playerZ)
+            else if(fireX < playerX && fireZ < playerZ)
             {
-                if( (playerX > x && x > (playerX - rozmedzieA)) && (playerZ > z && z > (playerZ - rozmedzieB)))
+                if( (playerX > fireX && fireX > (playerX - rozmedzieA)) && (playerZ > fireZ && fireZ > (playerZ - rozmedzieB)))
                 {
                     float a = fire.fireNode().getLocalTranslation().getX();
                     float b = fire.fireNode().getLocalTranslation().getY() - 1;
                     float c = fire.fireNode().getLocalTranslation().getZ();
                     fire.fireNode().setLocalTranslation(a, b, c);
                     zrusenieOhna(fire);
-                    System.out.println("Vykonavam if(rusenie ohna)");
                 }
             }
         }
@@ -941,7 +930,7 @@ public class Game extends SimpleApplication implements ActionListener {
     private void rozsirovanieOhna()
     {
         System.out.println("rozsirujem ohen");
-        Fire fire;
+        Fire fire = null;
         for(int i = 0; i < fireList.size(); i++)
         {
             fire = (Fire) fireList.get(i);
@@ -952,6 +941,9 @@ public class Game extends SimpleApplication implements ActionListener {
             fire.fireNode().setStartSize(startSize * 1.2f);
             fire.fireNode().setEndSize(endSize * 0.8f);
         }
+        System.out.println("Ohen X: " + fire.getX());
+        System.out.println("Ohen Y: " + fire.getY());
+        System.out.println("Ohen Z: " + fire.getZ());
     }
     
     private void zrusenieOhna(Fire fire)
@@ -961,5 +953,20 @@ public class Game extends SimpleApplication implements ActionListener {
             fire.fireNode().killAllParticles();
             fire.fireNode().setEnabled(false);
         }
-    }    
+    }   
+    
+    private boolean somVOhni(Character a)
+    {
+        Fire fire;        
+        for(int i = 0; i < fireList.size(); i++)
+        {
+            fire = (Fire) fireList.get(i);
+            float vzdialenostX = Math.abs(a.getNode().getLocalTranslation().x - fire.fireNode().getLocalTranslation().x);
+            float vzdialenostZ = Math.abs(a.getNode().getLocalTranslation().z - fire.fireNode().getLocalTranslation().z);
+            
+            if((vzdialenostX <= fire.fireNode().getStartSize() + 3) && (vzdialenostZ <= fire.fireNode().getStartSize() + 3))
+                return true;
+        }
+        return false;
+    }
 }
