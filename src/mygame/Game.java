@@ -88,6 +88,8 @@ public class Game extends SimpleApplication implements ActionListener {
     ArrayList fireList;
     NiftyWelcomeScreen welcome;
     
+    boolean nasleduj = false;
+    
     
     public void turnOn() {
         this.start();
@@ -146,10 +148,15 @@ public class Game extends SimpleApplication implements ActionListener {
     //            collision(janko, player, null);
         
 //        walkInWorld(jozko, janko);   
-        walking(jozko, 8);
-        walking(janko, 10);
-        walking(benny, 11);
+        walking(jozko, 1);
+        walking(benny, 3);
+        
+        if(!nasleduj)
+            walking(janko, 1);
+        else
+            nasleduj(janko);
         walking(crow, 1);
+        System.out.println("Janko: " +janko.getAnimacia().getAnimationName());
 //        System.out.println("X: " + player.getNode().getLocalTranslation().getX());
 //        System.out.println("Z: " + player.getNode().getLocalTranslation().getZ());
           
@@ -196,8 +203,25 @@ public class Game extends SimpleApplication implements ActionListener {
                 time = 0;
             }
         }
-//        walkDirection.setY(0);        
+        walkDirection.setY(0);        
         player.getControl().setWalkDirection(walkDirection);  
+    }
+    
+    private void nasleduj(Character a)
+    {
+        a.getControl().setWalkDirection(player.getNode().getLocalTranslation().subtract(a.getNode().getLocalTranslation())); 
+        a.getControl().setViewDirection(player.getNode().getLocalTranslation().subtract(a.getNode().getLocalTranslation()));
+        
+        if(a.isNear(player, a, 2))
+        {
+            a.getControl().setWalkDirection(zeroDirection);
+            setAnimation(a.getAnimacia(),"Stand");
+        }
+        else
+        {       
+            if(a.getAnimacia().getAnimationName().equalsIgnoreCase("Stand"))
+                setAnimation(a.getAnimacia(),"Walk");
+        }
     }
         
     /**
@@ -339,6 +363,14 @@ public class Game extends SimpleApplication implements ActionListener {
         a.getControl().setWalkDirection(position); 
         if(!position.equals(new Vector3f(0,y,0)))            
             a.getControl().setViewDirection(position);
+    }
+    
+    private void animStayWalk(Character a)
+    {
+        if(a.getControl().getWalkDirection().equals(zeroDirection))
+        {
+            setAnimation(null, INPUT_MAPPING_EXIT);
+        }
     }
 
     /**
@@ -520,7 +552,7 @@ public class Game extends SimpleApplication implements ActionListener {
         node.scale(0.6f, 0.6f, 0.6f);
 //        node.setLocalTranslation(17.0f, 0.0f, -1.0f);
         benny.setNode(node);
-        benny.makeControl(new Vector3f(0.6f, 4f, 80f), new Vector3f(0.0f, -30f, 0.0f));
+        benny.makeControl(new Vector3f(0.01f, 0.01f, 0.01f), new Vector3f(0.0f, -30f, 0.0f));
         benny.makeAnimation("idle", "Cube");
         benny.getControl().setViewDirection(new Vector3f(-1, 0.0f, 0));
         getPhysicsSpace().add(benny.getControl());
@@ -667,6 +699,9 @@ public class Game extends SimpleApplication implements ActionListener {
         
         inputManager.addMapping("kill", new KeyTrigger(KeyInput.KEY_K));
         inputManager.addListener(actionListener, "kill");
+        
+        inputManager.addMapping("nasleduj", new KeyTrigger(KeyInput.KEY_N));
+        inputManager.addListener(actionListener, "nasleduj");
     }
     
     private ActionListener actionListener = new ActionListener() {
@@ -705,6 +740,10 @@ public class Game extends SimpleApplication implements ActionListener {
             if(name.equals("spread") && !keyPressed)
             {
                 rozsirovanieOhna();
+            }
+            if(name.equals("nasleduj") && !keyPressed)
+            {
+                nasleduj = true;
             }
         }
     };
