@@ -155,7 +155,7 @@ public class Game extends SimpleApplication implements ActionListener {
         if(!nasleduj)
             walking(janko, 1);
         else
-            nasleduj(janko);
+            nasleduj(janko, 5);
         walking(crow, 1);
         somVOhni(player);   
 //        System.out.println("X: " + player.getNode().getLocalTranslation().getX());
@@ -208,11 +208,17 @@ public class Game extends SimpleApplication implements ActionListener {
         player.getControl().setWalkDirection(walkDirection);  
     }
     
-    private void nasleduj(Character a)
+    /**
+     * Postava a bude nasledovať hráča.
+     * @param a postava, ktorá má nasledovať
+     * @param rychlost rýchlosť pohybu postavy, čím vyššie číslo tým pomalšia rýchlosť 
+     */
+    private void nasleduj(Character a, float rychlost)
     {
-        a.getControl().setWalkDirection(player.getNode().getLocalTranslation().subtract(a.getNode().getLocalTranslation())); 
-        a.getControl().setViewDirection(player.getNode().getLocalTranslation().subtract(a.getNode().getLocalTranslation()));
-        
+        Vector3f pozicia = player.getNode().getLocalTranslation().subtract(a.getNode().getLocalTranslation());
+        a.getControl().setWalkDirection(new Vector3f(pozicia.getX()/rychlost, pozicia.getY()/rychlost, pozicia.getZ()/rychlost)); 
+        a.getControl().setViewDirection(pozicia);
+
         if(a.isNear(player, a, 2))
         {
             a.getControl().setWalkDirection(zeroDirection);
