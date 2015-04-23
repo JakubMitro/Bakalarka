@@ -5,12 +5,16 @@ import com.jme3.animation.AnimChannel;
 import com.jme3.app.SimpleApplication;
 import com.jme3.asset.TextureKey;
 import com.jme3.audio.AudioNode;
+import com.jme3.bounding.BoundingVolume;
 import com.jme3.bullet.BulletAppState;
 import com.jme3.bullet.PhysicsSpace;
 import com.jme3.bullet.collision.shapes.BoxCollisionShape;
+import com.jme3.bullet.collision.shapes.CollisionShape;
 import com.jme3.bullet.collision.shapes.SphereCollisionShape;
 import com.jme3.bullet.control.BetterCharacterControl;
 import com.jme3.bullet.control.RigidBodyControl;
+import com.jme3.bullet.util.CollisionShapeFactory;
+import com.jme3.collision.CollisionResults;
 import com.jme3.effect.ParticleEmitter;
 import com.jme3.effect.ParticleMesh;
 import com.jme3.effect.ParticleMesh.Type;
@@ -74,7 +78,8 @@ public class Game extends SimpleApplication implements ActionListener {
     Fire fire4;
     Fire fire5, fire60;
     private static Sphere bullet;
-    private Hasenie hasenie;        
+    private Hasenie hasenie;   
+    Node houseNode;
     
     static float bLength = 0.48f;
     static float bWidth = 0.24f;
@@ -136,6 +141,7 @@ public class Game extends SimpleApplication implements ActionListener {
 
     @Override
     public void simpleUpdate(float tpf) {  
+//        workWithHouse();
 //        explozia.update();  
     //        explozia.update();
     //        angle += tpf;
@@ -157,7 +163,7 @@ public class Game extends SimpleApplication implements ActionListener {
         else
             nasleduj(janko, 5);
         walking(crow, 1);
-        somVOhni(player);   
+        somVOhni(player,3);   
 //        System.out.println("X: " + player.getNode().getLocalTranslation().getX());
 //        System.out.println("Z: " + player.getNode().getLocalTranslation().getZ());
           
@@ -480,6 +486,7 @@ public class Game extends SimpleApplication implements ActionListener {
     public void initPlayer(){
         player = new Character("Hrac");
         Node node = (Node)assetManager.loadModel("Models/player/Hero.mesh.j3o");
+        node.scale(0.05f, 0.05f, 0.05f);
         player.makeNode("Player");
         player.setNode(node);
         player.makeControl(new Vector3f(0.3f, 5f, 70f), new Vector3f(0,0,0));
@@ -661,20 +668,53 @@ public class Game extends SimpleApplication implements ActionListener {
         
     public void initHouse()
     {
-//        Node houseNode = (Node)assetManager.loadModel("Scenes/town/dom.j3o"); 
-        Node houseNode = (Node)assetManager.loadModel("Models/newHouseDAE/newHouse.j3o"); 
+        houseNode = (Node)assetManager.loadModel("Models/dom/dom.j3o"); 
+//        houseNode = (Node)assetManager.loadModel("Models/dom/dae/dom.j3o"); 
         houseNode.setName("House");
-        houseNode.scale(2.2f, 2, 2.2f);
-        houseNode.setLocalTranslation(32.0f, 0.01f, 0.0f);  
+//        houseNode.scale(2.2f, 2, 2.2f);
+        houseNode.setLocalTranslation(31.0f, 0.05f, 0.0f);  
         
             /** A white, directional light source */ 
         DirectionalLight sun = new DirectionalLight();
         sun.setDirection((new Vector3f(0.5f, 0.5f, 0.5f)).normalizeLocal());
         sun.setColor(ColorRGBA.White);
-        rootNode.addLight(sun); 
-    
+        rootNode.addLight(sun);     
         rootNode.attachChild(houseNode);
+        
+        dontWalkCrossWalls();
     } 
+    
+    /*
+     * Funkcia vloží všetky uzly budovy do zoznamu a následne vymaže tie,
+     * ktoré predstavujú dvere. Ulzy v zozname predstavujú statické body scény, 
+     * ktoré sú neprechodné (ale dá sa cez ne vidieť).
+     */
+    private void dontWalkCrossWalls()
+    {
+        ArrayList walls = new ArrayList <Node>();
+        System.out.println("House ma deti: " + houseNode.getChildren().size());
+        for(int i = 0; i < houseNode.getChildren().size(); i++)
+        {
+            walls.add(houseNode.getChild(i));         
+        }
+        walls.remove(houseNode.getChild("SketchUp.011"));
+        walls.remove(houseNode.getChild("SketchUp.012"));
+        walls.remove(houseNode.getChild("SketchUp.013"));
+        walls.remove(houseNode.getChild("SketchUp.014"));
+        walls.remove(houseNode.getChild("SketchUp.015"));
+        walls.remove(houseNode.getChild("SketchUp.016"));
+        walls.remove(houseNode.getChild("SketchUp.017"));
+        
+        for(int i = 0; i < walls.size(); i++)
+        {
+            Node wallNode = (Node) walls.get(i);
+            CollisionShape houseShape = CollisionShapeFactory.createMeshShape(wallNode);
+            RigidBodyControl houseControl = new RigidBodyControl(houseShape, 0);
+            houseNode.addControl(houseControl);
+            getPhysicsSpace().add(houseControl); 
+            rootNode.attachChild(houseNode);
+        }
+    }
     
     private void initHasenie(){
         bulletAppState = new BulletAppState();
@@ -961,7 +1001,7 @@ public class Game extends SimpleApplication implements ActionListener {
         }
     }   
     
-    private boolean somVOhni(Character a)
+    private boolean somVOhni(Character a, int vzdialenost)
     {
         Fire fire;        
         for(int i = 0; i < fireList.size(); i++)
@@ -970,7 +1010,7 @@ public class Game extends SimpleApplication implements ActionListener {
             float vzdialenostX = Math.abs(a.getNode().getLocalTranslation().x - fire.fireNode().getLocalTranslation().x);
             float vzdialenostZ = Math.abs(a.getNode().getLocalTranslation().z - fire.fireNode().getLocalTranslation().z);
             
-            if((vzdialenostX <= fire.fireNode().getStartSize() + 3) && (vzdialenostZ <= fire.fireNode().getStartSize() + 3))
+            if((vzdialenostX <= fire.fireNode().getStartSize() + vzdialenost) && (vzdialenostZ <= fire.fireNode().getStartSize() + vzdialenost))
                 return true;
         }
         return false;
