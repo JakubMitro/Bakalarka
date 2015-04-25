@@ -34,9 +34,11 @@ import com.jme3.math.Vector2f;
 import com.jme3.math.Vector3f;
 import com.jme3.renderer.RenderManager;
 import com.jme3.renderer.queue.RenderQueue;
+import com.jme3.scene.CameraNode;
 import com.jme3.scene.Geometry;
 import com.jme3.scene.Node;
 import com.jme3.scene.Spatial;
+import com.jme3.scene.control.CameraControl;
 import com.jme3.scene.shape.Box;
 import com.jme3.scene.shape.Quad;
 import com.jme3.scene.shape.Sphere;
@@ -59,6 +61,8 @@ import mygame.jadex.communication.Communicator;
 public class Game extends SimpleApplication implements ActionListener {
 
     private BulletAppState bulletAppState;
+    private float hp = 100f;
+    private ArrayList<Spatial> fire;
     boolean w, a, s, d;
     private float time = 0.7f;
     private Vector3f walkDirection = new Vector3f(0, 0, 0);
@@ -92,6 +96,7 @@ public class Game extends SimpleApplication implements ActionListener {
     private static SphereCollisionShape bulletCollisionShape;
     ArrayList fireList;
     NiftyWelcomeScreen welcome;
+    private boolean mouse;
     
     boolean nasleduj = false;
     
@@ -111,16 +116,25 @@ public class Game extends SimpleApplication implements ActionListener {
     
     @Override
     public void simpleInitApp() {
+        
         welcome = new NiftyWelcomeScreen(assetManager, inputManager, audioRenderer, guiViewPort, flyCam);
         setDisplayFps(false);
         setDisplayStatView(false);
         welcome.InitNifty(welcome);
         initState();
         initLight();
-        flyCam.setMoveSpeed(50f);        
+//        flyCam.setMoveSpeed(50f);        
 //        initJadex();      
         initScene();        
         initPlayer();
+        
+//        flyCam.setEnabled(true);
+//        CameraNode camNode = new CameraNode("Camera Node",cam);
+////        camNode.setControlDir(CameraControl.ControlDirection.SpatialToCamera);
+//        camNode.setLocalTranslation(new Vector3f(0, -2,-1));
+////        player.getNode().attachChild(camNode);
+//        camNode.lookAt(player.getNode().getLocalTranslation(), Vector3f.UNIT_Y);
+        
         initInput();
         initAudio();
         com = Communicator.INSTANCE;
@@ -140,7 +154,18 @@ public class Game extends SimpleApplication implements ActionListener {
     }
 
     @Override
-    public void simpleUpdate(float tpf) {  
+    public void simpleUpdate(float tpf) { 
+        player.getControl().setViewDirection(cam.getDirection());
+        playerAction(tpf);
+        janko.walking(0.5f);
+        if (jozko.nearFire(2, fireList)) {
+            jozko.runFromFire(speed);
+            hp -= 0.8;
+            System.out.println("hp jozko" + hp);
+        } else {
+            jozko.setBusy(false);
+            jozko.walking();
+        }
 //        workWithHouse();
 //        explozia.update();  
     //        explozia.update();
@@ -155,15 +180,15 @@ public class Game extends SimpleApplication implements ActionListener {
     //            collision(janko, player, null);
         
 //        walkInWorld(jozko, janko);   
-        walking(jozko, 1);
-        walking(benny, 3);
-        
-        if(!nasleduj)
-            walking(janko, 1);
-        else
-            nasleduj(janko, 5);
-        walking(crow, 1);
-        somVOhni(player,3);   
+//        walking(jozko, 1);
+//        walking(benny, 3);
+//        
+//        if(!nasleduj)
+//            walking(janko, 1);
+//        else
+//            nasleduj(janko, 5);
+//        walking(crow, 1);
+//        somVOhni(player,3);   
 //        System.out.println("X: " + player.getNode().getLocalTranslation().getX());
 //        System.out.println("Z: " + player.getNode().getLocalTranslation().getZ());
           
@@ -178,7 +203,9 @@ public class Game extends SimpleApplication implements ActionListener {
 //            setAnimation(janko.getAnimacia(), "Walk");
 //        }
         
-        cam.setLocation(player.getNode().getLocalTranslation().add(new Vector3f(0.0f, 1.8f, 0.0f)));
+        dontLookCrossWalls();
+        
+//        cam.setLocation(player.getNode().getLocalTranslation().add(new Vector3f(0.0f, 1.8f, 0.0f)));
         walkDirection.set(0,0,0);
         time +=tpf;
         
@@ -219,23 +246,23 @@ public class Game extends SimpleApplication implements ActionListener {
      * @param a postava, ktorá má nasledovať
      * @param rychlost rýchlosť pohybu postavy, čím vyššie číslo tým pomalšia rýchlosť 
      */
-    private void nasleduj(Character a, float rychlost)
-    {
-        Vector3f pozicia = player.getNode().getLocalTranslation().subtract(a.getNode().getLocalTranslation());
-        a.getControl().setWalkDirection(new Vector3f(pozicia.getX()/rychlost, pozicia.getY()/rychlost, pozicia.getZ()/rychlost)); 
-        a.getControl().setViewDirection(pozicia);
-
-        if(a.isNear(player, a, 2))
-        {
-            a.getControl().setWalkDirection(zeroDirection);
-            setAnimation(a.getAnimacia(),"Stand");
-        }
-        else
-        {       
-            if(a.getAnimacia().getAnimationName().equalsIgnoreCase("Stand"))
-                setAnimation(a.getAnimacia(),"Walk");
-        }
-    }
+//    private void nasleduj(Character a, float rychlost)
+//    {
+//        Vector3f pozicia = player.getNode().getLocalTranslation().subtract(a.getNode().getLocalTranslation());
+//        a.getControl().setWalkDirection(new Vector3f(pozicia.getX()/rychlost, pozicia.getY()/rychlost, pozicia.getZ()/rychlost)); 
+//        a.getControl().setViewDirection(pozicia);
+//
+//        if(a.isNear(player, a, 2))
+//        {
+//            a.getControl().setWalkDirection(zeroDirection);
+//            setAnimation(a.getAnimacia(),"Stand");
+//        }
+//        else
+//        {       
+//            if(a.getAnimacia().getAnimationName().equalsIgnoreCase("Stand"))
+//                setAnimation(a.getAnimacia(),"Walk");
+//        }
+//    }
         
     /**
      * Hlavná funkcia zabezpečujúca kráčanie postáv "a" a "b" po svete. Funkcia volá funkciu pre kolíziu postáv 
@@ -246,53 +273,80 @@ public class Game extends SimpleApplication implements ActionListener {
      * @param a postava
      * @param b postava
      */
-    private void walkInWorld(Character a, Character b)
-    { 
-        Node aNode = a.getNode();
-        Node bNode = b.getNode();
-        BetterCharacterControl aControl = a.getControl();
-        BetterCharacterControl bControl = b.getControl();
-        
-        if(a.isKraca() && b.isKraca())
+//    private void walkInWorld(Character a, Character b)
+//    { 
+//        Node aNode = a.getNode();
+//        Node bNode = b.getNode();
+//        BetterCharacterControl aControl = a.getControl();
+//        BetterCharacterControl bControl = b.getControl();
+//        
+//        if(a.isKraca() && b.isKraca())
+//        {
+//            if(walking)
+//            {
+//                walking(a, 1);
+//                walking(b, 1);
+//                meeting = false;
+//            }
+//            if(aNode.getWorldBound().distanceTo(bNode.getLocalTranslation()) > 10)
+//            {
+//                walking = false;
+//                meeting = true;
+//            }
+//            if(meeting)
+//            {
+//                System.out.println(a.getMeno() + ": " + bNode.getWorldBound().distanceTo(aNode.getLocalTranslation()));
+//                System.out.println(b.getMeno() + ": " + aNode.getWorldBound().distanceTo(bNode.getLocalTranslation()));
+//
+//                if(aNode.getWorldBound().distanceTo(bNode.getLocalTranslation()) > 9)
+//                {
+//                    walking(a, 1);
+//                    walking(b, 1);        
+//                }
+//                else
+//                {
+//                    bControl.setViewDirection(aNode.getLocalTranslation().subtract(bNode.getLocalTranslation()));
+//                    bControl.setWalkDirection(aNode.getLocalTranslation().subtract(bNode.getLocalTranslation()));        
+//                    aControl.setViewDirection(bNode.getLocalTranslation().subtract(aNode.getLocalTranslation())); 
+//                    aControl.setWalkDirection(bNode.getLocalTranslation().subtract(aNode.getLocalTranslation()));  
+//
+//                    collision(a, b, player);
+//                    collision(a, b, null);
+//                }
+//            } 
+//        }
+//        
+//        if(!aControl.getWalkDirection().equals(zeroDirection))
+//            stayInWorld(aNode, aControl);
+//        if(!bControl.getWalkDirection().equals(zeroDirection))
+//            stayInWorld(bNode, bControl);
+//    }
+    
+    private void dontLookCrossWalls()
+    {
+        float x = cam.getDirection().getX();
+        float z = cam.getDirection().getZ();
+        float cislo = 1f;
+        if(x >= 0 && z >=0)
         {
-            if(walking)
-            {
-                walking(a, 1);
-                walking(b, 1);
-                meeting = false;
-            }
-            if(aNode.getWorldBound().distanceTo(bNode.getLocalTranslation()) > 10)
-            {
-                walking = false;
-                meeting = true;
-            }
-            if(meeting)
-            {
-                System.out.println(a.getMeno() + ": " + bNode.getWorldBound().distanceTo(aNode.getLocalTranslation()));
-                System.out.println(b.getMeno() + ": " + aNode.getWorldBound().distanceTo(bNode.getLocalTranslation()));
-
-                if(aNode.getWorldBound().distanceTo(bNode.getLocalTranslation()) > 9)
-                {
-                    walking(a, 1);
-                    walking(b, 1);        
-                }
-                else
-                {
-                    bControl.setViewDirection(aNode.getLocalTranslation().subtract(bNode.getLocalTranslation()));
-                    bControl.setWalkDirection(aNode.getLocalTranslation().subtract(bNode.getLocalTranslation()));        
-                    aControl.setViewDirection(bNode.getLocalTranslation().subtract(aNode.getLocalTranslation())); 
-                    aControl.setWalkDirection(bNode.getLocalTranslation().subtract(aNode.getLocalTranslation()));  
-
-                    collision(a, b, player);
-                    collision(a, b, null);
-                }
-            } 
+            System.out.println("Pozerám vpravo pred seba.");
+            cam.setLocation(player.getNode().getLocalTranslation().add(new Vector3f(-cislo, 2.8f, -cislo)));
         }
-        
-        if(!aControl.getWalkDirection().equals(zeroDirection))
-            stayInWorld(aNode, aControl);
-        if(!bControl.getWalkDirection().equals(zeroDirection))
-            stayInWorld(bNode, bControl);
+        else if(x < 0 && z >=0)
+        {
+            System.out.println("Pozerám vpravo za seba.");
+            cam.setLocation(player.getNode().getLocalTranslation().add(new Vector3f(cislo, 2.8f, -cislo)));
+        }
+        else if(x < 0 && z < 0)
+        {
+            System.out.println("Pozerám vľavo za seba.");
+            cam.setLocation(player.getNode().getLocalTranslation().add(new Vector3f(cislo, 2.8f, cislo)));
+        }
+        if(x >= 0 && z < 0)
+        {
+            System.out.println("Pozerám vľavo pred seba.");
+            cam.setLocation(player.getNode().getLocalTranslation().add(new Vector3f(-cislo, 2.8f, cislo)));
+        }
     }
     /**
      * Funkcia kontrolujúca kolíziu jednotlivých postáv a,b,c. Môžu nastať dva prípady, že sú zadané všetke tri postavy
@@ -301,30 +355,25 @@ public class Game extends SimpleApplication implements ActionListener {
      * @param b Postava, s ktorou je kontrolovaná kolízia.
      * @param c Postava, s ktorou je kontrolovaná kolízia.
      */
-    private void collision(Character a, Character b, Character c)
-    {
-        if(c != null)
-        {
-            if(a.getNode().getWorldBound().distanceTo(b.getNode().getLocalTranslation()) < 3 && a.getNode().getWorldBound().distanceTo(c.getNode().getLocalTranslation()) < 2)
-            {
-                System.out.println("Konverzuje " + a.getMeno() + " a " + b.getMeno() + " a " + c.getMeno() + ".");
-                setAnimation(a.getAnimacia(), "Stand");
-                setAnimation(b.getAnimacia(), "Stand");
-                setAnimation(c.getAnimacia(), "Stand");
-                a.getControl().setWalkDirection(zeroDirection);
-                b.getControl().setWalkDirection(zeroDirection);
+    private void collision(Character a, Character b, Character c) {
+        if (c != null) {
+            if (a.getNode().getWorldBound().distanceTo(b.getNode().getLocalTranslation()) < 3 && a.getNode().getWorldBound().distanceTo(c.getNode().getLocalTranslation()) < 2) {
+                //System.out.println("Konverzuje " + a.getMeno() + " a " + b.getMeno() + " a " + c.getMeno() + ".");
+                a.setAnimation("Stand");
+                b.setAnimation("Stand");
+                c.setAnimation("Stand");
+                a.getControl().setWalkDirection(Vector3f.ZERO);
+                b.getControl().setWalkDirection(Vector3f.ZERO);
                 walking = true;
                 a.doSomething();
                 b.doSomething();
             }
-        }
-        else if(a.getNode().getWorldBound().distanceTo(b.getNode().getLocalTranslation()) < 3)
-        {
-            System.out.println("Konverzuje " + a.getMeno() + " a " + b.getMeno() + ".");
-            setAnimation(a.getAnimacia(), "Stand");
-            setAnimation(b.getAnimacia(), "Stand");    
-            a.getControl().setWalkDirection(zeroDirection);
-            b.getControl().setWalkDirection(zeroDirection);
+        } else if (a.getNode().getWorldBound().distanceTo(b.getNode().getLocalTranslation()) < 3) {
+            //System.out.println("Konverzuje " + a.getMeno() + " a " + b.getMeno() + ".");
+            a.setAnimation("Stand");
+            b.setAnimation("Stand");
+            a.getControl().setWalkDirection(Vector3f.ZERO);
+            b.getControl().setWalkDirection(Vector3f.ZERO);
             walking = true;
             a.doSomething();
             b.doSomething();
@@ -339,44 +388,44 @@ public class Game extends SimpleApplication implements ActionListener {
      * @param control Control postavy,ktorá má kráčať.
      * @param anim Premenná pre zmenu animácie postavy pri zastávení a pohnutí sa
      */
-    private void walking(Character a, int rychlost) 
-    {
-        int rozsah = 500;
-        Random generate = new Random();  
-        float k = generate.nextInt(rozsah);
-        float l = generate.nextInt(rozsah);        
-        float x = a.getControl().getWalkDirection().getX();
-        float y = a.getControl().getWalkDirection().getY();
-        float z = a.getControl().getWalkDirection().getZ();        
-        float pomx = x;
-        float pomz = z;
-        
-        if(k == 10)
-            x = rychlost;
-        else if(k == 20)
-            x = 0;
-        else if(k == 30)
-            x = -rychlost;
-        if(l == 15)
-            z = rychlost;
-        else if(l == 25)
-            z = 0;
-        else if(l == 35)
-            z = -rychlost;   
-        if((pomx == rychlost || pomz == rychlost || pomx == -rychlost || pomz == -rychlost) && (x == 0 && z == 0) && (a.getMeno().equals("Jozko") || a.getMeno().equals("Janko")))
-            setAnimation(a.getAnimacia(),"Stand");
-        else if((pomx == 0 && pomz == 0) && (x == rychlost || z == rychlost || x == -rychlost || z == -rychlost) && (a.getMeno().equals("Jozko") || a.getMeno().equals("Janko")))
-            setAnimation(a.getAnimacia(),"Walk");
-        else if((pomx == 0 && pomz == 0) && (x == rychlost || z == rychlost || x == -rychlost || z == -rychlost) && a.getMeno().equals("Benny"))
-            setAnimation(a.getAnimacia(),"run");
-        else if((pomx == rychlost || pomz == rychlost || pomx == -rychlost || pomz == -rychlost) && (x == 0 && z == 0) && a.getMeno().equals("Benny"))
-            setAnimation(a.getAnimacia(),"idle");
-        
-        Vector3f position = new Vector3f(x,y,z);
-        a.getControl().setWalkDirection(position); 
-        if(!position.equals(new Vector3f(0,y,0)))            
-            a.getControl().setViewDirection(position);
-    }
+//    private void walking(Character a, int rychlost) 
+//    {
+//        int rozsah = 500;
+//        Random generate = new Random();  
+//        float k = generate.nextInt(rozsah);
+//        float l = generate.nextInt(rozsah);        
+//        float x = a.getControl().getWalkDirection().getX();
+//        float y = a.getControl().getWalkDirection().getY();
+//        float z = a.getControl().getWalkDirection().getZ();        
+//        float pomx = x;
+//        float pomz = z;
+//        
+//        if(k == 10)
+//            x = rychlost;
+//        else if(k == 20)
+//            x = 0;
+//        else if(k == 30)
+//            x = -rychlost;
+//        if(l == 15)
+//            z = rychlost;
+//        else if(l == 25)
+//            z = 0;
+//        else if(l == 35)
+//            z = -rychlost;   
+//        if((pomx == rychlost || pomz == rychlost || pomx == -rychlost || pomz == -rychlost) && (x == 0 && z == 0) && (a.getMeno().equals("Jozko") || a.getMeno().equals("Janko")))
+//            setAnimation(a.getAnimation("Stand"));
+//        else if((pomx == 0 && pomz == 0) && (x == rychlost || z == rychlost || x == -rychlost || z == -rychlost) && (a.getMeno().equals("Jozko") || a.getMeno().equals("Janko")))
+//            setAnimation(a.getAnimacia(),"Walk");
+//        else if((pomx == 0 && pomz == 0) && (x == rychlost || z == rychlost || x == -rychlost || z == -rychlost) && a.getMeno().equals("Benny"))
+//            setAnimation(a.getAnimacia(),"run");
+//        else if((pomx == rychlost || pomz == rychlost || pomx == -rychlost || pomz == -rychlost) && (x == 0 && z == 0) && a.getMeno().equals("Benny"))
+//            setAnimation(a.getAnimacia(),"idle");
+//        
+//        Vector3f position = new Vector3f(x,y,z);
+//        a.getControl().setWalkDirection(position); 
+//        if(!position.equals(new Vector3f(0,y,0)))            
+//            a.getControl().setViewDirection(position);
+//    }
     
     private void animStayWalk(Character a)
     {
@@ -485,16 +534,66 @@ public class Game extends SimpleApplication implements ActionListener {
      */
     public void initPlayer(){
         player = new Character("Hrac");
-        Node node = (Node)assetManager.loadModel("Models/player/Hero.mesh.j3o");
-        node.scale(0.05f, 0.05f, 0.05f);
+//        Node node = (Node)assetManager.loadModel("Models/player/Hero.mesh.j3o");
         player.makeNode("Player");
-        player.setNode(node);
+        player.getNode().scale(0.05f);
+//        player.setNode(node);
         player.makeControl(new Vector3f(0.3f, 5f, 70f), new Vector3f(0,0,0));
-        player.makeAnimation("Stand");
+//        player.makeAnimation("Stand");
         player.getControl().warp(new Vector3f(-10.0f, 0f, 0.0f));
-//        player.getControl().setViewDirection(walkDirection);
+        player.getControl().setViewDirection(walkDirection);
         getPhysicsSpace().add(player.getControl());
         rootNode.attachChild(player.getNode());
+    }
+    
+     private void playerAction(float tpf) {
+        
+        cam.setLocation(player.getNode().getLocalTranslation().add(new Vector3f(0.0f, 2.5f, 3.0f)));
+        walkDirection.set(0, 0, 0);
+        time += tpf;
+        if (a) {
+            walkDirection.addLocal(cam.getLeft().mult(5f));
+            if (time >= 0.7f) {
+                audioNode.play();
+                time = 0;
+            }
+        }
+        if (s) {
+            walkDirection.addLocal(cam.getDirection().negate().mult(5f));
+            if (time >= 0.7f) {
+                audioNode.play();
+                time = 0;
+            }
+        }
+        if (d) {
+            walkDirection.addLocal(cam.getLeft().negate().mult(5f));
+            if (time >= 0.7f) {
+                audioNode.play();
+                time = 0;
+            }
+        }
+        if (w) {
+            walkDirection.addLocal(cam.getDirection().mult(5f));
+            if (time >= 0.7f) {
+                audioNode.play();
+                time = 0;
+            }
+        }
+//        if(mouse){
+//            if(!player.getAnimation().equals("UseHatchet"))
+//            player.setAnimation("UseHatchet");
+//        } else{
+//            player.setAnimation("Stand");
+//        }
+        
+        walkDirection.setY(0);
+        player.getControl().setWalkDirection(walkDirection);
+        player.getControl().setViewDirection(cam.getDirection());
+        // uberanie zivota
+        if (player.nearFire(3, fireList)) {
+            hp -= 0.05;
+            System.out.println("hp=" + hp);
+        }
     }
 
     /*
@@ -505,7 +604,22 @@ public class Game extends SimpleApplication implements ActionListener {
         inputManager.addMapping("A", new KeyTrigger(KeyInput.KEY_A));
         inputManager.addMapping("S", new KeyTrigger(KeyInput.KEY_S));
         inputManager.addMapping("D", new KeyTrigger(KeyInput.KEY_D));
-        inputManager.addListener(this, new String[]{"W", "A", "S", "D"});
+        inputManager.addMapping("E", new KeyTrigger(KeyInput.KEY_E));
+        inputManager.addMapping("LMB",
+                new MouseButtonTrigger(MouseInput.BUTTON_LEFT));
+        inputManager.addMapping("f1", new KeyTrigger(KeyInput.KEY_F1));
+        inputManager.addMapping("f2", new KeyTrigger(KeyInput.KEY_F2));
+        inputManager.addMapping("f3", new KeyTrigger(KeyInput.KEY_F3));
+        inputManager.addMapping("f4", new KeyTrigger(KeyInput.KEY_F4));
+        inputManager.addMapping("f5", new KeyTrigger(KeyInput.KEY_F5));
+        inputManager.addMapping("f6", new KeyTrigger(KeyInput.KEY_F6));
+        inputManager.addMapping("f7", new KeyTrigger(KeyInput.KEY_F7));
+        inputManager.addMapping("f8", new KeyTrigger(KeyInput.KEY_F8));
+        inputManager.addMapping("f9", new KeyTrigger(KeyInput.KEY_F9));
+        inputManager.addMapping("f10", new KeyTrigger(KeyInput.KEY_F10));
+        inputManager.addMapping("f11", new KeyTrigger(KeyInput.KEY_F11));
+        inputManager.addMapping("f12", new KeyTrigger(KeyInput.KEY_F12));
+        inputManager.addListener(this, new String[]{"W", "A", "S", "D", "E", "LMB", "f1", "f2", "f3", "f4", "f5", "f6", "f7", "f8", "f9", "f10", "f11", "f12"});
     }
     /*
      * Priradi konkrétnemu znaku hodnotu pravda, v prípade stlačenia klávesy.
@@ -620,21 +734,20 @@ public class Game extends SimpleApplication implements ActionListener {
         rootNode.attachChild(scene);
     }
     
-    private void initFire()
-    {
-        
-   //     fireMat.setTexture("Texture", assetManager.loadTexture("Effects/Explosion/flame.png"));
-        fire1 = new Fire(assetManager,50,0,-2);
-        fire2 = new Fire(assetManager,50,0,-10); 
-        fire3 = new Fire(assetManager, 50,0,-18);
-        fire4 = new Fire(assetManager, 32,0,-17);
-        fire5 = new Fire(assetManager, 32,0,-9);
-        Fire fire6 = new Fire(assetManager, 32,0,-1);
-        Fire fire7 = new Fire(assetManager, 33,0,0);
-        Fire fire8 = new Fire(assetManager, 37,0,0);
-        Fire fire9 = new Fire(assetManager, 40,0,0);
-        Fire fire10 = new Fire(assetManager, 48,0,0);
-        Fire fire11 = new Fire(assetManager, 42,8,-10);
+    private void initFire() {
+        fireList = new ArrayList<Spatial>();
+        Material fireMat = new Material(assetManager, "Common/MatDefs/Misc/Particle.j3md");
+        Fire fire1 = new Fire(fireMat, 50, 0, -2);
+        Fire fire2 = new Fire(fireMat, 50, 0, -10);
+        Fire fire3 = new Fire(fireMat, 50, 0, -18);
+        Fire fire4 = new Fire(fireMat, 32, 0, -17);
+        Fire fire5 = new Fire(fireMat, 32, 0, -9);
+        Fire fire6 = new Fire(fireMat, 32, 0, -1);
+        Fire fire7 = new Fire(fireMat, 33, 0, 0);
+        Fire fire8 = new Fire(fireMat, 37, 0, 0);
+        Fire fire9 = new Fire(fireMat, 40, 0, 0);
+        Fire fire10 = new Fire(fireMat, 48, 0, 0);
+        Fire fire11 = new Fire(fireMat, 42, 5, -10);
         rootNode.attachChild(fire1.fireNode());
         rootNode.attachChild(fire2.fireNode());
         rootNode.attachChild(fire3.fireNode());
@@ -646,11 +759,7 @@ public class Game extends SimpleApplication implements ActionListener {
         rootNode.attachChild(fire9.fireNode());
         rootNode.attachChild(fire10.fireNode());
         rootNode.attachChild(fire11.fireNode());
-        
-        
-//        fire60 = new Fire(assetManager, 0,0,0);
-//        rootNode.attachChild(fire60.fireNode());
-        
+       
         fireList = new ArrayList<Fire>(); 
         fireList.add(fire1);
         fireList.add(fire2);
@@ -663,7 +772,7 @@ public class Game extends SimpleApplication implements ActionListener {
         fireList.add(fire9);
         fireList.add(fire10);
         fireList.add(fire11);
-//        fireList.add(fire60);
+        System.out.println("Fire: " + fireList.size());
     }
         
     public void initHouse()
@@ -671,7 +780,6 @@ public class Game extends SimpleApplication implements ActionListener {
         houseNode = (Node)assetManager.loadModel("Models/dom/dom.j3o"); 
 //        houseNode = (Node)assetManager.loadModel("Models/dom/dae/dom.j3o"); 
         houseNode.setName("House");
-//        houseNode.scale(2.2f, 2, 2.2f);
         houseNode.setLocalTranslation(31.0f, 0.05f, 0.0f);  
         
             /** A white, directional light source */ 
@@ -681,18 +789,7 @@ public class Game extends SimpleApplication implements ActionListener {
         rootNode.addLight(sun);     
         rootNode.attachChild(houseNode);
         
-        dontWalkCrossWalls();
-    } 
-    
-    /*
-     * Funkcia vloží všetky uzly budovy do zoznamu a následne vymaže tie,
-     * ktoré predstavujú dvere. Ulzy v zozname predstavujú statické body scény, 
-     * ktoré sú neprechodné (ale dá sa cez ne vidieť).
-     */
-    private void dontWalkCrossWalls()
-    {
         ArrayList walls = new ArrayList <Node>();
-        System.out.println("House ma deti: " + houseNode.getChildren().size());
         for(int i = 0; i < houseNode.getChildren().size(); i++)
         {
             walls.add(houseNode.getChild(i));         
@@ -714,7 +811,7 @@ public class Game extends SimpleApplication implements ActionListener {
             getPhysicsSpace().add(houseControl); 
             rootNode.attachChild(houseNode);
         }
-    }
+    } 
     
     private void initHasenie(){
         bulletAppState = new BulletAppState();
@@ -728,9 +825,7 @@ public class Game extends SimpleApplication implements ActionListener {
         brick = new Box(Vector3f.ZERO, bLength, bHeight, bWidth);
         brick.scaleTextureCoordinates(new Vector2f(1f, .5f));
 
-        initMaterial();
-//        initFloor();
-//        initWall();
+//        initMaterial();
         
         inputManager.addMapping("shoot", new MouseButtonTrigger(MouseInput.BUTTON_LEFT));
         inputManager.addListener(actionListener, "shoot");
@@ -756,21 +851,6 @@ public class Game extends SimpleApplication implements ActionListener {
         public void onAction(String name, boolean keyPressed, float tpf) {
         flyCam.setDragToRotate(false);
             if (name.equals("shooot") && !keyPressed) {
-//                Geometry bulletg = new Geometry("bullet", bullet);
-//                bulletg.setMaterial(mat2);
-//                bulletg.setShadowMode(RenderQueue.ShadowMode.CastAndReceive);
-//                bulletg.setLocalTranslation(cam.getLocation());
-//                
-//                hasit();
-//                
-//                SphereCollisionShape bulletCollisionShape = new SphereCollisionShape(0.4f);
-////                RigidBodyControl bulletNode = new BombControl(assetManager, bulletCollisionShape, 1);
-//                RigidBodyControl bulletNode = new RigidBodyControl(bulletCollisionShape, 1);
-//                bulletNode.setLinearVelocity(cam.getDirection().mult(25));
-//                bulletg.addControl(bulletNode);
-//                rootNode.attachChild(bulletg);
-//                getPhysicsSpace().add(bulletNode);
-                
                 Water water = new Water(assetManager, new Vector3f(cam.getLocation()));
                 SphereCollisionShape bulletCollisionShape = new SphereCollisionShape(0.4f);
                 RigidBodyControl bulletNode = new RigidBodyControl(bulletCollisionShape, 1);
@@ -815,51 +895,6 @@ public class Game extends SimpleApplication implements ActionListener {
         tex3.setWrap(WrapMode.Repeat);
         mat3.setTexture("ColorMap", tex3);
     }
-    
-//    public void initWaterfall()
-//    {
-//        Water water = new Water(assetManager, new Vector3f(0, 10, 0));
-//        rootNode.attachChild(water.getWaterEffect());
-//    }
-    
-//    public void initFloor() {
-//        Box floorBox = new Box(Vector3f.ZERO, 10f, 0.1f, 5f);
-//        floorBox.scaleTextureCoordinates(new Vector2f(3, 6));
-//
-//        Geometry floor = new Geometry("floor", floorBox);
-//        floor.setMaterial(mat3);
-//        floor.setShadowMode(RenderQueue.ShadowMode.Receive);
-//        floor.setLocalTranslation(0, -0.1f, 0);
-//        floor.addControl(new RigidBodyControl(new BoxCollisionShape(new Vector3f(10f, 0.1f, 5f)), 0));
-//        this.rootNode.attachChild(floor);
-//        this.getPhysicsSpace().add(floor);
-//    }
-//    
-//    public void initWall() {
-//        float startpt = bLength / 4;
-//        float height = 0;
-//        for (int j = 0; j < 15; j++) {
-//            for (int i = 0; i < 4; i++) {
-//                Vector3f vt = new Vector3f(i * bLength * 2 + startpt, bHeight + height, 0);
-//                addBrick(vt);
-//            }
-//            startpt = -startpt;
-//            height += 2 * bHeight;
-//        }
-//    }
-//    
-//    public void addBrick(Vector3f ori) {
-//
-//        Geometry reBoxg = new Geometry("brick", brick);
-//        reBoxg.setMaterial(mat);
-//        reBoxg.setLocalTranslation(ori);
-//        //for geometry with sphere mesh the physics system automatically uses a sphere collision shape
-//        reBoxg.addControl(new RigidBodyControl(1.5f));
-//        reBoxg.setShadowMode(RenderQueue.ShadowMode.CastAndReceive);
-//        reBoxg.getControl(RigidBodyControl.class).setFriction(0.6f);
-//        this.rootNode.attachChild(reBoxg);
-//        this.getPhysicsSpace().add(reBoxg);
-//    }
     
     public void hasit()
     {
@@ -954,20 +989,13 @@ public class Game extends SimpleApplication implements ActionListener {
     }
     
     private void initExplosion()
-    {
-        
+    {        
         System.out.println("robim exploziu");
         explozia = new Fire(assetManager, 32.0f, 10.0f, 0.0f);
         explozia.vybuch();
         explozia.getExplosionEffect().setLocalTranslation(-10.0f, 3.0f, 20.0f);
-        explozia.getExplosionEffect().setLocalTranslation(32.0f, 3.0f, -10.0f);
-        
+        explozia.getExplosionEffect().setLocalTranslation(32.0f, 3.0f, -10.0f);        
         explozia.getExplosionEffect().setLocalScale(5.2f);
-//        renderManager.preloadScene(explozia.getExplosionEffect());
-//
-//        cam.setLocation(new Vector3f(0, 3.5135868f, 10));
-//        cam.setRotation(new Quaternion(1.5714673E-4f, 0.98696727f, -0.16091813f, 9.6381607E-4f));
-
         rootNode.attachChild(explozia.getExplosionEffect()); 
         explozia.update();
         initFire();
@@ -982,14 +1010,9 @@ public class Game extends SimpleApplication implements ActionListener {
             fire = (Fire) fireList.get(i);
             float startSize = fire.fireNode().getStartSize();
             float endSize = fire.fireNode().getEndSize();
-            System.out.println("StartSize: " + startSize);
-            System.out.println("EndSize: " + endSize);
             fire.fireNode().setStartSize(startSize * 1.2f);
             fire.fireNode().setEndSize(endSize * 0.8f);
         }
-        System.out.println("Ohen X: " + fire.getX());
-        System.out.println("Ohen Y: " + fire.getY());
-        System.out.println("Ohen Z: " + fire.getZ());
     }
     
     private void zrusenieOhna(Fire fire)
