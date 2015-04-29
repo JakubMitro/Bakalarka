@@ -5,6 +5,10 @@
 package mygame;
 
 import com.jme3.asset.AssetManager;
+import com.jme3.bounding.BoundingVolume;
+import com.jme3.collision.Collidable;
+import com.jme3.collision.CollisionResults;
+import com.jme3.collision.UnsupportedCollisionException;
 import com.jme3.effect.ParticleEmitter;
 import com.jme3.effect.ParticleMesh;
 import com.jme3.effect.ParticleMesh.Type;
@@ -16,14 +20,17 @@ import com.jme3.math.FastMath;
 import com.jme3.math.Quaternion;
 import com.jme3.math.Vector3f;
 import com.jme3.scene.Node;
+import com.jme3.scene.SceneGraphVisitor;
+import com.jme3.scene.Spatial;
 //import jadex.bdi.examples.blackjack.GameState;
 import java.awt.event.ActionEvent;
+import java.util.Queue;
 
 /**
  *
  * @author student
  */
-public class Fire {
+public class Fire extends Spatial{
     private ParticleEmitter fireEffect;
     
     private float timeO = 0;
@@ -74,6 +81,26 @@ public class Fire {
 //        fireEffect.setHighLife(2f);
         fireEffect.getParticleInfluencer().setVelocityVariation(0.3f);
         
+    }
+    
+    public Fire(Material fireMat, float x, float y, float z){
+        fireEffect = new ParticleEmitter("Emitter", ParticleMesh.Type.Triangle, 80);
+        
+    //    fireMat.setTexture("Texture", assetManager.loadTexture("Effects/Explosion/flame.png"));
+        fireEffect.setMaterial(fireMat);
+        fireEffect.setLocalTranslation(x, y, z);
+        fireEffect.setImagesX(4); 
+        fireEffect.setImagesY(4); // 2x2 texture animation
+        fireEffect.setEndColor( new ColorRGBA(1f, 0f, 0f, 1f) );   // red
+        fireEffect.setStartColor( new ColorRGBA(1f, 1f, 0f, 0.5f) ); // yellow
+        fireEffect.getParticleInfluencer().setInitialVelocity(new Vector3f(0, 1.5f, 0));
+        fireEffect.setStartSize(0.9f);
+        fireEffect.setEndSize(0.2f);
+        
+//        fireEffect.setGravity(0f,0f,0f);
+//        fireEffect.setLowLife(0.2f);
+//        fireEffect.setHighLife(2f);
+        fireEffect.getParticleInfluencer().setVelocityVariation(0.3f);
     }
     
     public ParticleEmitter fireNode(){
@@ -415,5 +442,44 @@ public class Fire {
      */
     public void setY(float y) {
         this.y = y;
+    }
+
+    @Override
+    public void updateModelBound() {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public void setModelBound(BoundingVolume modelBound) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public int getVertexCount() {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public int getTriangleCount() {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public Spatial deepClone() {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public void depthFirstTraversal(SceneGraphVisitor visitor) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    protected void breadthFirstTraversal(SceneGraphVisitor visitor, Queue<Spatial> queue) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    public int collideWith(Collidable other, CollisionResults results) throws UnsupportedCollisionException {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 }
