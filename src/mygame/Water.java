@@ -10,7 +10,6 @@ import com.jme3.effect.ParticleMesh;
 import com.jme3.material.Material;
 import com.jme3.math.ColorRGBA;
 import com.jme3.math.Vector3f;
-import java.awt.Color;
 
 /**
  *
@@ -23,20 +22,15 @@ public class Water {
     {        
         waterEffect = new ParticleEmitter("Emitter", ParticleMesh.Type.Triangle, 80);
         Material waterMat = new Material(am, "Common/MatDefs/Misc/Particle.j3md");
-//        final Material mat = new Material(am,
-//                "ShaderBlow/MatDefs/FakeParticleBlow/FakeParticleBlow.j3md");
-//        Material waterMat = am.loadMaterial(("Materials/FakeParticleBlow2/FakeParticleBlow.j3m"));
-
-//        waterMat.setTexture("Texture", am.loadTexture("Effects/Explosion/flame.png"));
+        waterMat.setTexture("Texture", am.loadTexture("Effects/Explosion/water.png"));
         waterEffect.setMaterial(waterMat);
         waterEffect.setLocalTranslation(pozicia.x, pozicia.y, pozicia.z);
-        waterEffect.setEndColor( new ColorRGBA(1.5f, 1.5f, 1.5f, 1f) );  
-        waterEffect.setStartColor( new ColorRGBA(1f, 0.25f, 0.25f, 0.25f) );
+        waterEffect.setEndColor(ColorRGBA.White);  
+        waterEffect.setStartColor( ColorRGBA.Blue );
         waterEffect.getParticleInfluencer().setInitialVelocity(new Vector3f(0, -1.5f, 1));
         waterEffect.setStartSize(0.9f);
         waterEffect.setEndSize(0.2f);
         waterEffect.getParticleInfluencer().setVelocityVariation(0.1f);
-        
     }
 
     /**
