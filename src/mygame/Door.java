@@ -7,24 +7,15 @@ package mygame;
 import com.jme3.animation.AnimChannel;
 import com.jme3.animation.AnimControl;
 import com.jme3.asset.AssetManager;
-import com.jme3.bounding.BoundingVolume;
-import com.jme3.collision.Collidable;
-import com.jme3.collision.CollisionResults;
-import com.jme3.collision.UnsupportedCollisionException;
-import com.jme3.math.FastMath;
 import com.jme3.math.Quaternion;
 import com.jme3.math.Vector3f;
 import com.jme3.scene.Node;
-import com.jme3.scene.SceneGraphVisitor;
-import com.jme3.scene.Spatial;
-import java.util.ArrayList;
-import java.util.Queue;
 
 /**
  *
  * @author Jakub
  */
-public class Door extends Spatial{
+public class Door{
     AssetManager am;
     private Node doorNode;
     private AnimChannel doorChannel;
@@ -63,44 +54,5 @@ public class Door extends Spatial{
      */
     public void setAnim(String anim) {
         doorChannel.setAnim(anim);
-    }
-
-    @Override
-    public void updateModelBound() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-
-    @Override
-    public void setModelBound(BoundingVolume modelBound) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-
-    @Override
-    public int getVertexCount() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-
-    @Override
-    public int getTriangleCount() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-
-    @Override
-    public Spatial deepClone() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-
-    @Override
-    public void depthFirstTraversal(SceneGraphVisitor visitor) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-
-    @Override
-    protected void breadthFirstTraversal(SceneGraphVisitor visitor, Queue<Spatial> queue) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-
-    public int collideWith(Collidable other, CollisionResults results) throws UnsupportedCollisionException {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 }
