@@ -1,5 +1,7 @@
 package mygame;
 
+import com.jme3.animation.AnimChannel;
+import com.jme3.animation.AnimControl;
 import com.jme3.app.SimpleApplication;
 import com.jme3.audio.AudioNode;
 import com.jme3.bullet.BulletAppState;
@@ -19,6 +21,9 @@ import com.jme3.light.AmbientLight;
 import com.jme3.light.DirectionalLight;
 import com.jme3.material.Material;
 import com.jme3.math.ColorRGBA;
+import com.jme3.math.FastMath;
+import com.jme3.math.Matrix3f;
+import com.jme3.math.Quaternion;
 import com.jme3.math.Vector2f;
 import com.jme3.math.Vector3f;
 import com.jme3.renderer.RenderManager;
@@ -29,6 +34,8 @@ import com.jme3.scene.shape.Box;
 import com.jme3.scene.shape.Sphere;
 import com.jme3.shadow.BasicShadowRenderer;
 import java.util.ArrayList;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import mygame.jadex.JadexStarter;
 import mygame.jadex.communication.Communicator;
 
@@ -49,6 +56,7 @@ public class Game extends SimpleApplication implements ActionListener {
     private static Sphere bullet;
     Node houseNode;
     private ArrayList<Spatial> fire;
+    private ArrayList doorList;
     
     static float bLength = 0.48f;
     static float bWidth = 0.24f;
@@ -60,6 +68,9 @@ public class Game extends SimpleApplication implements ActionListener {
     private ArrayList <Spatial> fireList;
     NiftyWelcomeScreen welcome;    
     boolean nasleduj = false;
+    
+    AnimChannel kanalDveri;
+    Node dvere;
     
     
     public void turnOn() {
@@ -98,14 +109,17 @@ public class Game extends SimpleApplication implements ActionListener {
         initHouse();    
         initFire();    
 //        initFire2();  
+        addDoor();
+        openDoor();
     }
 
     @Override
     public void simpleUpdate(float tpf) {   
         player.getControl().setViewDirection(cam.getDirection());
-        
+        openDoor();  
         playerAction(tpf);
         janko.walking(0.5f);
+        
         if (jozko.nearFire(2, fireList)) {
             jozko.runFromFire(speed);
             hp -= 0.8;
@@ -125,9 +139,67 @@ public class Game extends SimpleApplication implements ActionListener {
             endGame(); 
     }
     
+    
+    
     @Override
     public void simpleRender(RenderManager rm) {
         //TODO: add render code
+    }
+    
+    /**
+     * Funkcia nastaví animáciu dverí na otvorenú v prípade, ak sa priblíži hráč.
+     */
+    private void openDoor()
+    {
+        Thread doorThread = new Thread(){
+            public void run()
+            {
+                for(int i = 0; i < doorList.size(); i++)
+                {
+                    Door door = (Door) doorList.get(i);
+                    if(player.compare(player.getNode().getLocalTranslation(), door.getDoorNode().getLocalTranslation(), 2))
+                    {
+                        if(door.getAnim().equals("Closed") )
+                        {
+                            door.setAnim("Opening");
+                        }
+                        else if(door.getAnim().equals("Opening"))
+                        {
+                            try {
+                                Thread.sleep(1700);
+                            } catch (InterruptedException ex) {
+                                Logger.getLogger(Game.class.getName()).log(Level.SEVERE, null, ex);
+                            }
+                            door.setAnim("Open");
+                        }
+                    }
+                }
+            }
+        };
+        doorThread.start();
+        
+    }
+    
+    /**
+     * Funkcia pridáva modely dverí k domu. Trieda Doormá tri argumenty:
+     * - rotácia(v radianch(floatoch)), pozícia a škálovanie
+     */
+    private void addDoor()
+    {
+        doorList = new ArrayList();
+        doorList.add(new Door(assetManager, 0, new Vector3f(38.1f, 0.1f, 0.0f), new Vector3f(1.3f,2.12f, 1.0f)));
+        doorList.add(new Door(assetManager, 0, new Vector3f(34.2f, 0.1f, -6.7f), new Vector3f(1.44f,2.2f, 1.0f)));
+        doorList.add(new Door(assetManager, FastMath.PI/2, new Vector3f(39.2f, 0.1f, -11.45f), new Vector3f(1.3f,2.3f, 1.0f)));
+        doorList.add(new Door(assetManager, FastMath.PI/2, new Vector3f(39.2f, 0.1f, -19.1f), new Vector3f(1.2f,2.3f, 1.0f)));
+        doorList.add(new Door(assetManager, -FastMath.PI/2, new Vector3f(42.2f, 0.1f, -17.5f), new Vector3f(1.4f,2.2f, 1.0f)));
+        doorList.add(new Door(assetManager, -FastMath.PI/2, new Vector3f(42.2f, 0.1f, -10.4f), new Vector3f(1.4f,2.06f, 1.0f)));
+        doorList.add(new Door(assetManager, FastMath.PI, new Vector3f(46.6f, 0.1f, -6.0f), new Vector3f(1.5f,2.3f, 1.0f)));
+        
+        for(int i = 0; i < doorList.size(); i++)
+        {
+            Door door = (Door) doorList.get(i);
+            rootNode.attachChild(door.getDoorNode());
+        }
     }
         
     /**
@@ -442,7 +514,7 @@ public class Game extends SimpleApplication implements ActionListener {
     {
         houseNode = (Node)assetManager.loadModel("Models/dom/dom.j3o"); 
         houseNode.setName("House");
-        houseNode.setLocalTranslation(31.0f, 0.05f, 0.0f);  
+        houseNode.setLocalTranslation(30.0f, 0.05f, 0.0f);  
         
             /** Pridanie slnka */ 
         DirectionalLight sun = new DirectionalLight();
