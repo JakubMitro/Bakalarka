@@ -192,7 +192,7 @@ public class Character {
         this.kraca = kraca;
     }
 
-    private boolean compare(Vector3f x, Vector3f y, float dist) {
+    public boolean compare(Vector3f x, Vector3f y, float dist) {
         return (Math.abs(x.getX() - y.getX()) < dist
                 && Math.abs(x.getY() - y.getY()) < dist
                 && Math.abs(x.getZ() - y.getZ()) < dist);
