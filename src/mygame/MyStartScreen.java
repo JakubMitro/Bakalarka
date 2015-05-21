@@ -8,6 +8,7 @@ import de.lessvoid.nifty.elements.Element;
 import de.lessvoid.nifty.elements.render.TextRenderer;
 import de.lessvoid.nifty.screen.Screen;
 import de.lessvoid.nifty.screen.ScreenController;
+import de.lessvoid.nifty.tools.SizeValue;
 
 /**
  *
@@ -17,6 +18,7 @@ public class MyStartScreen extends AbstractAppState implements ScreenController 
   private Nifty nifty;
   private Application app;
   private Screen screen;
+  public static Boolean bool = false;
 
   /** custom methods */
   public MyStartScreen() {
@@ -24,13 +26,20 @@ public class MyStartScreen extends AbstractAppState implements ScreenController 
   }
 
   public void startGame(String nextScreen) {
+      bool = true;
     nifty.gotoScreen(nextScreen);  // switch to another screen
   }
   
+  public void setHpBar(Element element, float progress) {
+        final int MIN_WIDTH = 32;
+        int pixelWidth = (int) (MIN_WIDTH + (element.getParent().getWidth() - MIN_WIDTH) * progress);
+        element.setConstraintWidth(new SizeValue(pixelWidth + "px"));
+        element.getParent().layoutElements();
+    }
 
   public void quitGame() {
+    System.exit(1);
     app.stop();
-//    System.exit(1);
   }
 
   public String getPlayerName() {

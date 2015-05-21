@@ -13,7 +13,6 @@ import de.lessvoid.nifty.builder.LayerBuilder;
 import de.lessvoid.nifty.builder.PanelBuilder;
 import de.lessvoid.nifty.builder.TextBuilder;
 import de.lessvoid.nifty.controls.button.builder.ButtonBuilder;
-import de.lessvoid.nifty.tools.Color;
 
 public class NiftyWelcomeScreen {
     private AssetManager assetManager;
@@ -21,6 +20,7 @@ public class NiftyWelcomeScreen {
     private AudioRenderer audioRenderer;
     private ViewPort guiViewPort;
     private FlyByCamera flyCamera;
+    private boolean playGame = false;
     
   public NiftyWelcomeScreen(AssetManager assetManager, InputManager inputManager,
     AudioRenderer audioRenderer, ViewPort guiViewPort, FlyByCamera flyCamera)
@@ -31,7 +31,7 @@ public class NiftyWelcomeScreen {
         this.guiViewPort = guiViewPort;
         this.flyCamera = flyCamera;
   }
-
+  
   public void InitNifty(NiftyWelcomeScreen welcomeScreen)
   {
         NiftyJmeDisplay niftyDisplay = new NiftyJmeDisplay(
@@ -88,10 +88,7 @@ public class NiftyWelcomeScreen {
 
                     // text o hre
                     text(new TextBuilder() {{
-                        text("Hra sa odohravá v mestskom prostredí. Úlohou hrajucého je "
-                                + "zachránt osoby z horiaceho domu. K obsluhe sú klavesy: "
-                                + "\n\nH: hasenie ohna \nN: nasledovanie hrajúveho zachranenovanou osobou\n"
-                                + "\nPozor!!! Ohen sa síri, tak rýchlo na pomoc!");
+                        text("Rýchlo na pomoc rodien v nebezpecenstve. \n Pri zachraňovaní skús použiť tlačidlá N a H.");
                         font("Interface/Fonts/Default.fnt");
                         wrap(true);
                         height("120%");

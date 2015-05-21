@@ -38,7 +38,7 @@ public class Character {
         alive = true;
         kraca = true;
         busy = false;
-        hp = 100;
+        hp = 450;
     }
     public float getHp(){
         return hp;
@@ -344,7 +344,7 @@ public class Character {
     
     public boolean checkHP()
     {
-        if(hp <= 0)
+        if(hp >= 640)
         {
             node.removeControl(getControl());
             return true;
